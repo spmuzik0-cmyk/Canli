@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "canli",
+  "compatibility_date": "2026-11-15",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS"
+  }
+}
