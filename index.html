@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canlı Yayın</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+body {
+  margin: 0;
+  background: #101010;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+h2 { padding: 20px; }
+video {
+  width: 95%;
+  max-width: 1000px;
+  background: black;
+}
+input, button {
+  padding: 13px;
+  margin: 8px;
+  border-radius: 7px;
+}
+input { width: 75%; }
+</style>
+</head>
+<body>
+<h2>Canlı Yayın Oynatıcı</h2>
+<input id="url" placeholder="Yetkili M3U8 yayın adresi">
+<button onclick="play()">Oynat</button>
+<br>
+<video id="video" controls playsinline></video>
+<script>
+function play() {
+  const url = document.getElementById('url').value.trim();
+  const video = document.getElementById('video');
+
+  if (Hls.isSupported()) {
+    if (window.hls) window.hls.destroy();
+    window.hls = new Hls();
+    window.hls.loadSource(url);
+    window.hls.attachMedia(video);
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+  } else {
+    alert('Tarayıcı HLS desteklemiyor.');
+  }
+}
+</script>
+</body>
+</html>
+
