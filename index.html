@@ -3,54 +3,70 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Canlı Yayın</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Canlı TV</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@latest"></script>
 <style>
-body {
-  margin: 0;
-  background: #101010;
-  color: white;
-  font-family: Arial;
-  text-align: center;
-}
-h2 { padding: 20px; }
-video {
-  width: 95%;
-  max-width: 1000px;
-  background: black;
-}
-input, button {
-  padding: 13px;
-  margin: 8px;
-  border-radius: 7px;
-}
-input { width: 75%; }
+body{background:#101010;color:white;font-family:Arial;text-align:center;padding:20px}
+input,button{padding:14px;margin:8px;border-radius:8px;width:90%;max-width:600px}
+button{background:#1684ff;color:white;border:0;font-weight:bold}
+video{width:100%;max-width:900px;background:black;margin-top:20px}
 </style>
 </head>
 <body>
-<h2>Canlı Yayın Oynatıcı</h2>
-<input id="url" placeholder="Yetkili M3U8 yayın adresi">
-<button onclick="play()">Oynat</button>
-<br>
-<video id="video" controls playsinline></video>
+<h2>CANLI TV</h2>
+<input id="url" placeholder="TS veya M3U8 yayın adresi">
+<button onclick="play()">YAYINI AÇ</button>
+<video id="video" controls autoplay playsinline></video>
+<p id="status">Yayın adresini girin</p>
 <script>
-function play() {
-  const url = document.getElementById('url').value.trim();
-  const video = document.getElementById('video');
+let player=null;
 
-  if (Hls.isSupported()) {
-    if (window.hls) window.hls.destroy();
-    window.hls = new Hls();
-    window.hls.loadSource(url);
-    window.hls.attachMedia(video);
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = url;
-  } else {
-    alert('Tarayıcı HLS desteklemiyor.');
-  }
+function play(){
+ const url=document.getElementById('url').value.trim();
+ const video=document.getElementById('video');
+ const status=document.getElementById('status');
+
+ if(!url.startsWith('https://') && !url.startsWith('http://')){
+   status.textContent='Geçerli bir HTTP/HTTPS adresi girin';
+   return;
+ }
+
+ if(player){player.destroy();player=null;}
+ video.pause();
+ video.removeAttribute('src');
+ video.load();
+
+ if(url.toLowerCase().includes('.m3u8')){
+   if(Hls.isSupported()){
+     player=new Hls();
+     player.loadSource(url);
+     player.attachMedia(video);
+     player.on(Hls.Events.MANIFEST_PARSED,()=>video.play());
+     player.on(Hls.Events.ERROR,(e,d)=>{
+       if(d.fatal)status.textContent='HLS hatası: '+d.type;
+     });
+   }else if(video.canPlayType('application/vnd.apple.mpegurl')){
+     video.src=url;
+     video.play();
+   }else{
+     status.textContent='HLS desteklenmiyor';
+   }
+ }else if(mpegts.isSupported()){
+   player=mpegts.createPlayer({
+     type:'mpegts',
+     isLive:true,
+     url:url
+   });
+   player.attachMediaElement(video);
+   player.load();
+   player.play();
+   status.textContent='TS yayını yükleniyor...';
+ }else{
+   status.textContent='Bu tarayıcı MPEG-TS oynatmayı desteklemiyor';
+ }
 }
 </script>
 </body>
 </html>
-
